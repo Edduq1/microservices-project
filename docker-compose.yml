@@ -24,6 +24,7 @@ services:
     image: auth-service:1.0
     build: ./microservices-lab/auth-service 
     container_name: auth_service
+    restart: always
     depends_on:
       - postgres
       - redis

@@ -6,10 +6,10 @@ import time
 # --- Variables de Entorno ---
 # Leemos las credenciales y configuraciones desde las variables de entorno
 # que Docker Compose pasará a este contenedor desde el archivo .env
-pg_host = os.getenv("POSTGRES_HOST")
-pg_db = os.getenv("POSTGRES_DB")
-pg_user = os.getenv("POSTGRES_USER")
-pg_password = os.getenv("POSTGRES_PASSWORD")
+pg_host = os.getenv("DB_HOST")
+pg_db = os.getenv("DB_NAME")
+pg_user = os.getenv("DB_USER")
+pg_password = os.getenv("DB_PASS")
 
 redis_host = os.getenv("REDIS_HOST")
 redis_port = int(os.getenv("REDIS_PORT", 6379)) # Usamos 6379 como puerto por defecto

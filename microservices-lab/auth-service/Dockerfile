@@ -1,5 +1,5 @@
 # 1. Usar una imagen oficial de Python como base
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # 2. Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 6. Comando para mantener el contenedor corriendo (lo cambiaremos después)
-CMD ["tail", "-f", "/dev/null"]
+CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000"]

@@ -1,3 +1,6 @@
 # Archivos de entorno
 .env
 .env.example
+
+# Archivos de caché
+__pycache__/

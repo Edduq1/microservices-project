@@ -25,11 +25,21 @@ services:
     build: ./microservices-lab/auth-service 
     container_name: auth_service
     restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./microservices-lab/auth-service:/app
+    environment:
+      - DEBUG=1
+      - DB_HOST=postgres
+      - DB_NAME=main_db
+      - DB_USER=devuser
+      - DB_PASS=devpass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - postgres
       - redis
-    env_file:
-      - .env.example
 
 volumes:
   pgdata:

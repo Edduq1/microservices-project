@@ -41,5 +41,26 @@ services:
       - postgres
       - redis
 
+  blog-service:
+    image: blog-service:1.0
+    build: ./microservices-lab/blog-service 
+    container_name: blog_service
+    restart: always
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./microservices-lab/blog-service:/app
+    environment:
+      - DEBUG=1
+      - DB_HOST=postgres
+      - DB_NAME=main_db
+      - DB_USER=devuser
+      - DB_PASS=devpass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+      
 volumes:
   pgdata:

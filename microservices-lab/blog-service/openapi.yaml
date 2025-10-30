@@ -51,7 +51,7 @@ paths:
                         id: { type: integer }
                         title: { type: string }
                         slug: { type: string }
-                        excerpt: { type: string } # Falta añadir excerpt al serializer
+                        excerpt: { type: string }
                         author: { type: object, properties: {id: integer, name: string} } # Ajustar a display_name si usas eso
                         category: { type: object, properties: {id: integer, name: string} }
                         published_at: { type: string, format: date-time }

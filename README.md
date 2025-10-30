@@ -220,6 +220,214 @@ La autenticación de la API utiliza JSON Web Tokens (JWT) con un sistema de dos 
 
 ---
 
+---
+
+## 📅 Día 3
+
+### 🛠️ Actividades realizadas
+- Se habilitó `blog-service` como API pública en `http://localhost:8001`.
+- Conexión validada con `PostgreSQL` y `Redis` (caché para endpoints críticos).
+- Se creó y documentó el script de semillas `seed_blog.py` para poblar datos.
+- Se implementaron endpoints para categorías, posts (listado, búsqueda, detalle por `slug`) y healthcheck.
+- Se configuró paginación (`PAGE_SIZE=10`) y búsqueda (`SearchFilter`) en posts.
+- Se añadió caché con `django-redis` para respuestas de categorías (120s) y detalle de post (60s).
+- (Opcional) Middleware de logger para inspeccionar el header `Authorization` en solicitudes.
+
+### 📁 Estructura implementada (blog-service)
+```
+microservices-lab/blog-service/
+├── authors/                     # App de autores
+│   ├── __init__.py
+│   ├── admin.py                 # Registro admin
+│   ├── apps.py                  # Configuración de la app
+│   ├── migrations/              # Migraciones de BD
+│   │   ├── 0001_initial.py      # Modelo inicial Author
+│   │   └── __init__.py
+│   ├── models.py                # Modelo Author y relaciones
+│   ├── serializers.py           # Serializer de Author
+│   ├── tests.py
+│   └── views.py                 # Vistas/Endpoints de Author
+├── categories/                  # App de categorías
+│   ├── __init__.py
+│   ├── admin.py                 # Registro admin
+│   ├── apps.py                  # Configuración de la app
+│   ├── migrations/              # Migraciones de BD
+│   │   ├── 0001_initial.py      # Modelo inicial Category
+│   │   └── __init__.py
+│   ├── models.py                # Modelo Category (slug, active)
+│   ├── serializers.py           # Serializer de Category
+│   ├── tests.py
+│   ├── urls.py                  # Rutas /api/categories/
+│   └── views.py                 # Listado con caché Redis (TTL 120s)
+├── core/                        # Proyecto Django principal
+│   ├── __init__.py
+│   ├── asgi.py                  # Entrypoint ASGI
+│   ├── middleware.py            # Logger opcional Authorization
+│   ├── settings.py              # Configuración DB, Redis, DRF, paginación
+│   ├── urls.py                  # Enrutamiento raíz (categories, posts, healthz)
+│   └── wsgi.py                  # Entrypoint WSGI
+├── posts/                       # App de publicaciones
+│   ├── __init__.py
+│   ├── admin.py                 # Registro admin
+│   ├── apps.py                  # Configuración de la app
+│   ├── management/              # Comandos Django
+│   │   └── commands/
+│   │       └── seed_blog.py     # Semillas: 30 posts, 5 categorías, 3 autores
+│   ├── migrations/              # Migraciones de BD
+│   │   ├── 0001_initial.py      # Modelo inicial Post
+│   │   ├── 0002_post_excerpt.py # Campo excerpt agregado
+│   │   └── __init__.py
+│   ├── models.py                # Modelo Post y relaciones
+│   ├── serializers.py           # Serializer con author y category anidados
+│   ├── tests.py
+│   ├── urls.py                  # Rutas /api/posts/ y /api/posts/{slug}/
+│   └── views.py                 # Listado, búsqueda y detalle (caché 60s)
+├── utils/                       # App de utilidades compartidas
+│   ├── __init__.py
+│   ├── admin.py                 # sin cambios relevantes
+│   ├── apps.py                  # sin cambios relevantes
+│   ├── migrations/              # sin cambios relevantes
+│   │   └── __init__.py
+│   ├── models.py                # sin cambios relevantes
+│   ├── tests.py                 # sin cambios relevantes
+│   ├── urls.py                  # sin cambios relevantes
+│   └── views.py                 # sin cambios relevantes
+├── Dockerfile                   # Imagen del servicio (Gunicorn + Django)
+├── manage.py                    # Utilidad de comandos Django
+├── openapi.yaml                 # Especificación de la API (referencia)
+├── README.md                    # Documentación del microservicio Blog
+└── requirements.txt             # Dependencias de Python del servicio
+```
+
+### 🚀 Cómo Ejecutar y Probar
+- Comando para crear 30 posts, 5 categorias y 3 autores para la base de datos.
+```bash
+docker compose exec blog-service python manage.py seed_blog
+```
+
+- Levantar el servicio (reconstruye si es necesario):
+```bash
+docker compose up --build -d blog-service
+```
+
+- Preparar migraciones:
+```bash
+docker compose exec blog-service python manage.py makemigrations
+```
+
+- Ejecutar migraciones:
+```bash
+docker compose exec blog-service python manage.py migrate
+```
+
+- Poblar la base de datos con datos de prueba:
+```bash
+docker compose exec blog-service python manage.py seed_blog
+```
+
+### ⚡ Endpoints de la API (Día 3)
+
+1) Healthcheck
+- Método y URL: `GET http://localhost:8001/healthz/`
+- Descripción: Verifica la conexión con la Base de Datos y Redis.
+- Validación (Respuesta Esperada):
+```json
+{
+  "status": "ok",
+  "db": "ok",
+  "redis": "ok"
+}
+```
+
+2) Listar Categorías
+- Método y URL: `GET http://localhost:8001/api/categories/`
+- Descripción: Devuelve una lista de todas las categorías activas. Este endpoint usa caché con Redis (TTL 120s).
+- Validación (Respuesta Esperada):
+```json
+[
+  { "id": 1, "name": "NombreCategoria1", "slug": "nombrecategoria1" },
+  { "id": 2, "name": "NombreCategoria2", "slug": "nombrecategoria2" }
+]
+```
+
+3) Listar Posts (con paginación)
+- Método y URL: `GET http://localhost:8001/api/posts/`
+- Descripción: Devuelve una lista paginada (`PAGE_SIZE=10`) de posts publicados. Los campos `author` y `category` se devuelven como objetos anidados.
+- Validación (Respuesta Esperada):
+```json
+{
+  "count": 30,
+  "next": "http://localhost:8001/api/posts/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "title": "...",
+      "slug": "...",
+      "excerpt": "...",
+      "author": { "id": 1, "name": "..." },
+      "category": { "id": 2, "name": "..." },
+      "published_at": "2024-10-30T12:34:56Z"
+    }
+  ]
+}
+```
+
+4) Buscar Posts
+- Método y URL: `GET http://localhost:8001/api/posts/?search=palabra`
+- Descripción: Busca la `palabra` en el `title` y `content` de los posts publicados.
+- Validación (Respuesta Esperada):
+```json
+{
+  "count": 5,
+  "next": null,
+  "previous": null,
+  "results": [
+    { "id": 10, "title": "Post con palabra", "slug": "post-con-palabra", "excerpt": "...", "author": { "id": 3, "name": "..." }, "category": { "id": 1, "name": "..." }, "published_at": "..." }
+  ]
+}
+```
+
+5) Detalle de Post (por Slug)
+- Método y URL: `GET http://localhost:8001/api/posts/{slug}/` (ej. `http://localhost:8001/api/posts/mi-post-de-ejemplo/`)
+- Descripción: Devuelve el detalle de un post específico usando su `slug`. Este endpoint usa caché con Redis (TTL 60s).
+- Validación (Respuesta Esperada):
+```json
+{
+  "id": 1,
+  "title": "...",
+  "slug": "mi-post-de-ejemplo",
+  "excerpt": "...",
+  "content": "...",
+  "author": { "id": 1, "name": "..." },
+  "category": { "id": 2, "name": "..." },
+  "published_at": "2024-10-30T12:34:56Z",
+  "views": 0
+}
+```
+
+6) (Opcional) Middleware Logger
+- Método y URL: `GET http://localhost:8001/api/posts/`
+- Descripción: Prueba de que el middleware loguea los headers `Authorization`.
+- Validación: Revisar los logs del contenedor y verificar el mensaje.
+```bash
+docker compose logs blog-service
+```
+Debe aparecer una línea similar a: `Authorization header found: Bearer <token>`.
+
+### 🏛️ Pila Tecnológica (Día 3)
+- Django REST Framework
+- `django-filter` (para `SearchFilter` y filtrado de consultas)
+- `django-redis` (caché de respuestas y sesiones)
+- `Faker` (para generación de datos en `seed_blog.py`)
+- Gunicorn (servidor WSGI en producción del contenedor)
+
+### ✅ Objetivos cumplidos (Día 3)
+ - `blog-service` operativo en `:8001` con endpoints clave y caché.
+ - Endpoints realizados y verificados de manera exitosa.
+ - Datos de prueba disponibles mediante `seed_blog.py`.
+ - Paginación y búsqueda funcionales; detalle con caché.
+
 ## Contribución 🤝
 - 💡 Se agradecen ideas y mejoras. Abre un issue para discutir cambios.
 - 🔧 Envía pull requests con descripciones claras y pruebas cuando aplique.

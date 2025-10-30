@@ -6,10 +6,12 @@ WORKDIR /app
 
 # 3. Copiar e instalar dependencias
 COPY requirements.txt .
+
+# 4. Instalar dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. Copiar el resto del código (que crearemos después)
+# 5. Copiar el resto del código (que crearemos después)
 COPY . .
 
-# 5. Comando temporal para mantener encendido mientras creamos archivos
-CMD ["tail", "-f", "/dev/null"]
+# 5. Comando final para ejecutar el servidor Gunicorn en el puerto 8001
+CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8001"]

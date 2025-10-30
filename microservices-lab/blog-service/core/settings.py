@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_redis',
-    'django_filter',
+    'django_filters',
     #Mis apps
     'utils',
     'categories',
@@ -85,8 +86,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-import os # Asegúrate de tener 'import os' al inicio del archivo
 
 DATABASES = {
     'default': {

@@ -15,6 +15,8 @@ class Post(models.Model):
 
     title = models.CharField(max_length=255, verbose_name="Título")
     slug = models.SlugField(max_length=255, unique=True, blank=True, help_text="Dejar en blanco para autogenerar.")
+    # Campo para almacenar un extracto breve del contenido
+    excerpt = models.TextField(blank=True, null=True, verbose_name="Extracto")
     # El documento dice 'body', pero 'content' es más común
     content = models.TextField(verbose_name="Contenido")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft', verbose_name="Estado")

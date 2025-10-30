@@ -11,7 +11,8 @@ from .serializers import PostListSerializer, PostDetailSerializer
 @method_decorator(cache_page(60), name="retrieve")   # detalle cacheado 60s
 class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Post.objects.filter(status="published").select_related("author", "category")
-    filterset_backends = [filters.SearchFilter]
+    filter_backends = [filters.SearchFilter]
     search_fields = ["title", "content"]
+
     def get_serializer_class(self):
         return PostDetailSerializer if self.action == "retrieve" else PostListSerializer

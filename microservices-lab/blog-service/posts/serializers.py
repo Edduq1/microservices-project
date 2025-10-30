@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Posts
+from .models import Post
 from authors.serializers import AuthorSerializer # Importa el que acabas de crear
 from categories.serializers import CategorySerializer # Importa el que acabas de crear
 

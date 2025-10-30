@@ -1,0 +1,81 @@
+openapi: 3.0.0
+info:
+  title: Blog Service API
+  version: 1.0.0
+  description: API para gestionar posts, categorías y autores del blog.
+paths:
+  /api/categories/:
+    get:
+      summary: Lista categorías activas
+      responses:
+        '200':
+          description: Lista de categorías
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    name: { type: string }
+                    slug: { type: string }
+  /api/posts/:
+    get:
+      summary: Lista posts publicados con paginación y búsqueda
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema: { type: string }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Lista paginada de posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count: { type: integer }
+                  next: { type: string, nullable: true, format: url }
+                  previous: { type: string, nullable: true, format: url }
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        title: { type: string }
+                        slug: { type: string }
+                        # excerpt: { type: string } # Falta añadir excerpt al serializer
+                        author: { type: object, properties: {id: integer, name: string} } # Ajustar a display_name si usas eso
+                        category: { type: object, properties: {id: integer, name: string} }
+                        published_at: { type: string, format: date-time }
+  /api/posts/{slug}/: # Asumiendo lookup por slug
+    get:
+      summary: Detalle de un post
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Detalle del post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  title: { type: string }
+                  slug: { type: string }
+                  content: { type: string } # El doc dice 'body'
+                  author: { type: object, properties: {id: integer, name: string} } # Ajustar
+                  category: { type: object, properties: {id: integer, name: string} } # Ajustar
+                  published_at: { type: string, format: date-time }
+                  views: { type: integer }

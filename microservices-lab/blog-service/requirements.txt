@@ -16,3 +16,6 @@ gunicorn
 
 # Cliente Redis base
 redis
+
+#Para seed_blog.py
+faker

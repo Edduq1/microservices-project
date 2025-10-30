@@ -58,6 +58,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #Para logging de Authorization header
+    'core.middleware.LogAuthorizationHeaderMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -152,3 +154,34 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ... (resto de settings.py) ...
+
+# CONFIGURACIÓN DE LOGGING JSON BÁSICA
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'json': {
+            'format': '{"asctime": "%(asctime)s", "name": "%(name)s", "levelname": "%(levelname)s", "message": "%(message)s", "pathname": "%(pathname)s", "lineno": %(lineno)d}',
+            'datefmt': '%Y-%m-%dT%H:%M:%S%z',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json', # Usar formato JSON
+        },
+    },
+    'root': { # Captura todos los logs
+        'handlers': ['console'],
+        'level': 'INFO', # Nivel de log (INFO, DEBUG, WARNING, ERROR, CRITICAL)
+    },
+    'loggers': { # Configuración específica para Django
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False, # No enviar logs de Django al logger 'root'
+        },
+    },
+}

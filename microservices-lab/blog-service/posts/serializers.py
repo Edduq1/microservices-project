@@ -4,12 +4,12 @@ from authors.serializers import AuthorSerializer # Importa el que acabas de crea
 from categories.serializers import CategorySerializer # Importa el que acabas de crear
 
 class PostListSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField()
-    category = serializers.StringRelatedField()
+    author = AuthorSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
         model = Post
-        fields = ('id', 'title', 'slug', 'author', 'category', 'published_at')
+        fields = ('id', 'title', 'slug','excerpt', 'author', 'category', 'published_at')
 
 class PostDetailSerializer(serializers.ModelSerializer):
     author = AuthorSerializer(read_only=True)
@@ -17,6 +17,6 @@ class PostDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id', 'title', 'slug', 'content', 'status',
-                'author', 'category', 'created_at', 'published_at')
+        fields = ('id', 'title', 'slug','excerpt', 'content', 'status',
+                'author', 'category', 'created_at', 'published_at','views')
         read_only_fields = ('status', 'created_at', 'published_at')
